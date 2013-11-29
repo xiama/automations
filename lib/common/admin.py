@@ -64,7 +64,7 @@ def get_max_gears(user=None):
     """
     if user != None:
         #as root#
-        (status, output) = run_remote_cmd_as_root("oo-admin-ctl-user -l %s"%user)
+        (status, output) = run_remote_cmd_as_root2("oo-admin-ctl-user -l %s"%user)
         if status == 0:
             obj = re.search(r"max gears:\s+(\d+)", output)
             if obj:

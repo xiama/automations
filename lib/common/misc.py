@@ -366,7 +366,8 @@ def run_remote_cmd2(app_name, cmd, as_root=False, host=None, quiet=False):
         user = 'root'
         if not host:
             host = get_instance_ip()
-        key_filename = get_root_ssh_key()
+        #key_filename = get_root_ssh_key()
+        key_filename = get_default_ssh_key()
     else:
         user = OSConf.get_app_uuid(app_name)
         if not host:
