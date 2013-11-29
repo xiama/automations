@@ -1,0 +1,18 @@
+Format of new functions:
+------------------------
+
+    * try to handle all exceptions inside the function and don't propagate 
+      them further
+    * use pylint
+
+def name_of_the_function():
+    try:
+        if <everything was OK>:
+            return 0
+        else:               #Error occured
+            log.error("Error message...")
+            return 1
+    except Exception as e:
+        log.error(str(e))
+        return 1
+

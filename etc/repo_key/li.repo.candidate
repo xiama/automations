@@ -1,0 +1,54 @@
+[li]
+name=Li repo for Enterprise Linux 6 - x86_64
+baseurl=https://mirror1.stg.rhcloud.com/libra/rhel-6-libra-candidate/x86_64/
+        https://mirror2.stg.rhcloud.com/libra/rhel-6-libra-candidate/x86_64/
+        https://mirror2.prod.rhcloud.com/libra/rhel-6-libra-candidate/x86_64/
+        https://mirror1.prod.rhcloud.com/libra/rhel-6-libra-candidate/x86_64/
+failovermethod=priority
+enabled=1
+gpgcheck=0
+gpgkey=https://mirror1.stg.rhcloud.com/libra/li/li-signing.asc
+sslverify=0
+sslclientcert=/var/lib/yum/client-cert.pem
+sslclientkey=/var/lib/yum/client-key.pem
+
+[li-source]
+name=Li repo for Enterprise Linux 6 - $basearch
+baseurl=https://mirror1.stg.rhcloud.com/libra/rhel-6-libra-candidate/SRPMS
+        https://mirror2.stg.rhcloud.com/libra/rhel-6-libra-candidate/SRPMS
+        https://mirror2.prod.rhcloud.com/libra/rhel-6-libra-candidate/SRPMS
+        https://mirror1.prod.rhcloud.com/libra/rhel-6-libra-candidate/SRPMS
+failovermethod=priority
+enabled=0
+gpgkey=https://mirror1.stg.rhcloud.com/libra/li-signing.asc
+gpgcheck=0
+sslverify=0
+sslclientcert=/var/lib/yum/client-cert.pem
+sslclientkey=/var/lib/yum/client-key.pem
+
+[qpid]
+name=Qpid repo for Enterprise Linux 6 - $basearch
+baseurl=https://mirror1.stg.rhcloud.com/libra/qpid/$basearch/Packages
+        https://mirror2.stg.rhcloud.com/libra/qpid/$basearch/Packages
+        https://mirror2.prod.rhcloud.com/libra/qpid/$basearch/Packages
+        https://mirror1.prod.rhcloud.com/libra/qpid/$basearch/Packages
+failovermethod=priority
+enabled=1
+gpgcheck=0
+sslverify=0
+sslclientcert=/var/lib/yum/client-cert.pem
+sslclientkey=/var/lib/yum/client-key.pem
+
+[passenger]
+name=Passenger repo for Enterprise Linux 6
+baseurl=https://mirror1.stg.rhcloud.com/libra/passenger
+        https://mirror2.stg.rhcloud.com/libra/passenger
+        https://mirror2.prod.rhcloud.com/libra/passenger
+        https://mirror1.prod.rhcloud.com/libra/passenger
+failovermethod=priority
+enabled=1
+gpgcheck=0
+sslverify=0
+sslclientcert=/var/lib/yum/client-cert.pem
+sslclientkey=/var/lib/yum/client-key.pem
+

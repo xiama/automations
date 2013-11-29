@@ -1,0 +1,11 @@
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+export RHTEST_HOME=/home/pruan/work/rhtest
+export PATH=${RHTEST_HOME}/bin:${RHTEST_HOME}/lib:$PATH
+export PYTHONPATH=${RHTEST_HOME}/bin:${RHTEST_HOME}/lib:${RHTEST_HOME}/testmodules:$PYTHONPATH
+alias 2rt='cd $RHTEST_HOME'
+# User specific aliases and functions

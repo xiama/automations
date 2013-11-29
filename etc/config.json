@@ -1,0 +1,13 @@
+{
+   "HOST"              : "openshift-mtv1.lab.sjc.redhat.com",
+   "DBURI"             : "openshift-mtv1.lab.sjc.redhat.com",
+   "documentroot"      : "/var/www/html",
+   "baseurl"           : "http://openshift-mtv1.lab.sjc.redhat.com",
+   "CONFIG_URI"        : "configs",
+   "TESTRESULTS_DBURI" : "Openshift",
+   "resultsdirbase"    : "/var/www/html/testresults",
+   "backupdirbase"     : "/var/www/html/backup",
+   "proxy"             : 0,
+   "global_logs_basepath" : "/automation_logs/OpenShift_QE/automation",
+   "global_logs_baseurl"  : "http://fileshare.englab.nay.redhat.com/pub/libra/OpenShift_QE/automation"
+}

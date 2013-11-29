@@ -1,0 +1,58 @@
+#!/usr/bin/python
+import os
+import psycopg2
+
+
+conn_str = "dbname=%s user=%s password=%s host=%s port=%s" % (os.environ['OPENSHIFT_APP_NAME'], os.environ['OPENSHIFT_POSTGRESQL_DB_USERNAME'], os.environ['OPENSHIFT_POSTGRESQL_DB_PASSWORD'], os.environ['OPENSHIFT_POSTGRESQL_DB_HOST'], os.environ['OPENSHIFT_POSTGRESQL_DB_PORT'])
+
+def create_data(data):
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor()
+    cur.execute("DROP TABLE IF EXISTS info;")
+    cur.execute("CREATE TABLE info(id integer PRIMARY KEY, data text);")
+    cur.execute("INSERT INTO info VALUES(1, '%s');" % (data))
+    conn.commit()
+    conn.close()
+
+def get_data():
+    conn = psycopg2.connect(conn_str)
+    cur = conn.cursor()
+    cur.execute("SELECT data FROM info;")
+    result = cur.fetchone()
+    conn.close()
+    return result[0]
+
+
+def application(environ, start_response):
+        ctype = 'text/plain'
+        if environ['PATH_INFO'] == '/health':
+                response_body = "1"
+        elif environ['PATH_INFO'] == '/env':
+                response_body = ['%s: %s' % (key, value)
+                    for key, value in sorted(environ.items())]
+                response_body = '\n'.join(response_body)
+        elif environ['PATH_INFO'] == '/data1.py':
+                create_data("#str_random1#")
+                response_body = 'Please visit /show.py to see the data'
+        elif environ['PATH_INFO'] == '/data2.py':
+                create_data("#str_random2#")
+                response_body = 'Please visit /show.py  to see the data'
+        elif environ['PATH_INFO'] == '/show.py':
+                response_body = get_data()
+        else:
+                response_body = 'PostgreSQL test'
+
+        status = '200 OK'
+        response_headers = [('Content-Type', ctype), ('Content-Length', str(len(response_body)))]
+        #
+        start_response(status, response_headers)
+        return [response_body]
+
+#
+# Below for testing only
+#
+if __name__ == '__main__':
+        from wsgiref.simple_server import make_server
+        httpd = make_server('localhost', 8051, application)
+        # Wait for a single request, serve it and quit.
+        httpd.handle_request()

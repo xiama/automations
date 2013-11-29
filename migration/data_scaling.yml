@@ -1,0 +1,141 @@
+jenkins1:
+  Cartridge:
+    - jenkins-1
+
+php1s:
+  Cartridge:
+   - php-5.3
+   - mysql-5.1
+   - jenkins-client-1
+  embed:
+  scale: true
+  min: 2
+  max: -1
+
+jbossas1s:
+  Cartridge:
+    - jbossas-7
+    - jenkins-client-1
+  embed:
+  alias:
+    - as1s.j.b
+  scale: true
+  min: 2
+  max: 2
+
+perl1s:
+  Cartridge:
+    - perl-5.10
+    - mongodb-2.2
+    - postgresql-9.2
+  embed:
+  alias:
+    - perl1s.foo.bar
+  scale: true
+  min:
+  max:
+
+jbosseap1s:
+  Cartridge:
+    - jbosseap-6
+    - mysql-5.1
+  embed:
+  alias:
+  scale: ture
+  min:
+  max:
+
+python27s:
+  Cartridge:
+    - python-2.7
+    - postgresql-8.4
+    - jenkins-client-1
+  embed:
+  scale: true
+  min:
+  max:
+
+python26s:
+  Cartridge:
+    - python-2.6
+    - mysql-5.1
+  embed:
+  scale: true
+  min:
+  min:
+
+python33s:
+  Cartridge:
+    - python-3.3
+  embed:
+  scale: true
+  min:
+  min:
+
+ruby18s:
+  Cartridge:
+    - ruby-1.8
+    - postgresql-9.2
+  embed:
+  alias:
+    - r18.r18.r18
+  scale: true
+  min:
+  min:
+
+ruby19s:
+  Cartridge:
+    - ruby-1.9
+    - mysql-5.1
+  embed:
+  alias:
+    - r19s.hjw.org
+  scale: true
+  min:
+  min:
+
+nodejs06s:
+  Cartridge:
+    - nodejs-0.6
+    - postgresql-8.4
+  embed:
+  alias:
+    - ns.foo.org
+  scale: true
+  min:
+  min:
+
+jbossews1s:
+  Cartridge:
+    - jbossews-1.0
+    - mongodb-2.2
+    - jenkins-client-1
+  embed:
+  alias:
+    - ews1s.test.org
+  scale: true
+  min:
+  min:
+
+jbossews2s:
+  Cartridge:
+    - jbossews-2.0
+    - mysql-5.1
+    - postgresql-9.2
+  embed:
+  alias:
+    - ews2s.com
+  scale: true
+  min:
+  max:
+
+nodejs10s:
+  Cartridge:
+    - nodejs-0.10
+    - mysql-5.1
+    - cron-1.4
+  embed:
+  alias:
+  scale: true
+  min:
+  max:

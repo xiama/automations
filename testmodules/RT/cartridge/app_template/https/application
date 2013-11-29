@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+import os.path
+import os
+import sys
+
+try:
+    __file__
+except NameError:
+    __file__ = '?'
+
+
+def application(environ, start_response):
+    """ The WSGI test application """
+    # emit status / headers
+    status = "200 OK"
+    headers = [('Content-Type', 'text/html'), ]
+    start_response(status, headers)
+
+    # assemble and return content
+    return [environ["HTTP_X_FORWARDED_PROTO"]]
+
+
+if __name__ == '__main__':
+    # this runs when script is started directly from commandline
+    try:
+        # create a simple WSGI server and run the application
+        from wsgiref import simple_server
+        print "Running test application - point your browser at http://localhost:8000/ ..."
+        httpd = simple_server.WSGIServer(('', 8000), simple_server.WSGIRequestHandler)
+        httpd.set_app(application)
+        httpd.serve_forever()
+    except ImportError:
+        # wsgiref not installed, just output html to stdout
+        for content in application({}, lambda status, headers: None):
+            print content

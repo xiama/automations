@@ -1,0 +1,381 @@
+
+function create_guest(){
+    DISTRO=$1
+    ISO_DIR=$2
+    EXTRA_ARGS=$3
+
+    if [ -z "$KICKSTART_HOST" ]; then
+        echo "ERROR: Missing \$KICKSTART_HOST variable"
+        return 254
+    fi
+
+    virt-install --accelerate --hvm --connect qemu:///system \
+       --network network:default \
+       --name OnPremise$DISTRO --ram=$RAM_SIZE \
+       --file=/var/lib/libvirt/images/OnPremise$DISTRO.img \
+       --file-size=$DISK_SIZE --vnc \
+       --location=$ISO_DIR \
+       --os-variant=rhel6 \
+       --extra-args=$EXTRA_ARGS
+}
+
+
+function create_guest_centos(){
+    if [ -z "$KICKSTART" ]; then
+        echo "ERROR: Missing \$KICKSTART variable"
+        return 254
+    fi
+    if [ -z "$CENTOS_VERSION" ]; then
+        echo "ERROR: Missing \$CENTOS_VERSION variable"
+        return 254
+    fi
+    ISO_DIR="ftp://ftp.osuosl.org/pub/centos/$CENTOS_VERSION/os/x86_64/"
+    DISTRO="-CentOS$CENTOS_VERSION"
+    #KS=https://raw.github.com/gist/3658797/c3566f04989f084d06c58f50214d99b0acd4c604/openshift.ks
+    EXTRA_ARGS="ks=$KICKSTART noipv6 s=100"
+    create_guest $DISTRO $ISO_DIR $EXTRA_ARGS 
+}
+
+
+function create_guest_rhel(){
+    if [ -z "$KICKSTART" ]; then
+        echo "ERROR: Missing \$KICKSTART variable"
+        return 254
+    fi
+    if [ -z "$RHEL_VERSION" ]; then
+        echo "ERROR: Missing \$RHEL_VERSION variable"
+        return 254
+    fi
+    ISO_DIR="http://download.englab.brq.redhat.com/pub/rhel/released/RHEL-6/$RHEL_VERSION/Server/x86_64/os"
+    DISTRO="-RHEL$RHEL_VERSION"
+    #KS=https://raw.github.com/gist/3658797/c3566f04989f084d06c58f50214d99b0acd4c604/openshift.ks
+    EXTRA_ARGS="ks=$KICKSTART noipv6 s=100"
+    create_guest $DISTRO $ISO_DIR $EXTRA_ARGS 
+}
+
+
+function create_guest_fedora(){
+    if [ -z "$KICKSTART" ]; then
+        echo "ERROR: Missing \$KICKSTART variable"
+        return 254
+    fi
+    if [ -z "$FEDORA_VERSION" ]; then
+        echo "ERROR: Missing \$FEDORA_VERSION variable"
+        return 254
+    fi
+    ISO_DIR="http://download.fedoraproject.org/pub/fedora/linux/releases/$FEDORA_VERSION/Fedora/x86_64/os"
+    DISTRO="-Fedora$FEDORA_VERSION"
+    #KS=https://raw.github.com/gist/3658797/c3566f04989f084d06c58f50214d99b0acd4c604/openshift.ks
+    EXTRA_ARGS="ks=$KICKSTART  noipv6 s=100"
+    create_guest $DISTRO $ISO_DIR $EXTRA_ARGS 
+}
+
+
+function create_guest_ubuntu(){
+    if [ -z "$UBUNTU_VERSION" ]; then
+        echo "ERROR: Missing \$UBUNTU_VERSION variable"
+        return 254
+    fi
+    ISO_DIR=http://us.archive.ubuntu.com/ubuntu/dists/$UBUNTU_VERSION/main/installer-amd64/
+    DISTRO="-Ubuntu-$UBUNTU_VERSION"
+    NAME="onpremise-ubuntu"
+    EXTRA_ARGS="auto=true interface=eth0 hostname=${NAME} domain=qa.openshift.redhat.com url=$KICKSTART_HOST/debian-onpremise-preseed.cfg"
+    create_guest $DISTRO $ISO_DIR $EXTRA_ARGS
+
+#   --extra-args="auto=true interface=eth0 hostname=${NAME} domain=openshift.brq.redhat.com netcfg/get_ipaddress=192.168.1.2 netcfg/get_netmask=255.255.255.0 netcfg/get_gateway=192.168.1.1 netcfg/get_nameservers=192.168.1.1 netcfg/disable_dhcp=true url=http://localhost/preseed.cfg"
+}
+
+
+function create_guest_debian(){
+    if [ -z "$DEBIAN_VERSION" ]; then
+        echo "ERROR: Missing \$DEBIAN_VERSION variable"
+        return 254
+    fi
+    ISO_DIR=http://ftp.us.debian.org/debian/dists/$DEBIAN_VERSION/main/installer-amd64/
+    DISTRO="-Debian-$DEBIAN_VERSION"
+    NAME="onpremise-debian"
+    EXTRA_ARGS="auto=true interface=eth0 hostname=${NAME} domain=qa.openshift.redhat.com url=$KICKSTART_HOST/debian-onpremise-preseed.cfg"
+    create_guest $DISTRO $ISO_DIR $EXTRA_ARGS
+
+#   --extra-args="auto=true interface=eth0 hostname=${NAME} domain=openshift.brq.redhat.com netcfg/get_ipaddress=192.168.1.2 netcfg/get_netmask=255.255.255.0 netcfg/get_gateway=192.168.1.1 netcfg/get_nameservers=192.168.1.1 netcfg/disable_dhcp=true url=http://localhost/preseed.cfg"
+}
+
+
+function add_node() {
+    local source_img=$1
+    local new_node_name=$2
+    local broker_ip=$3
+    local new_node_img="${vm_img_dir}/${new_node_name}.qcow2"
+    local new_node_ip
+    local overwrite_flag=${4}
+
+    if [ X"$overwrite_flag" == X"1" ]; then
+        clean_vm ${new_node_name}
+    fi
+
+    echo "#############"
+    echo "Create $new_node_name"
+    echo "#############"
+
+    cmd="cp -f ${source_img} ${new_node_img}"
+    echo "Command: $cmd"
+    eval "${cmd}"
+    echo ""
+
+    create_vm ${new_node_img} ${new_node_name}
+    new_node_ip=${vm_ip}
+
+    ssh_command ${ssh_key_file} ${vm_username} ${new_node_ip} "ss-setup-node --with-broker-ip ${broker_ip} --with-node-hostname ${new_node_name} --domain ${domain_name}"
+    echo ""
+
+    ssh_command ${ssh_key_file} ${vm_username} ${broker_ip} "ss-register-dns --with-node-hostname ${new_node_name} --with-node-ip ${new_node_ip} --domain ${domain_name}"
+    echo ""
+
+    node_verification ${broker_ip} ${new_node_name} ${new_node_ip}
+}
+
+
+function clean_vm() {
+    local vm_name=${1}
+    local cmd
+    if $(virsh list | grep ${vm_name} 2>&1 >/dev/null); then
+        echo "Found ${vm_name} is running"
+        cmd="virsh destroy ${vm_name}"
+        echo "Command: $cmd"
+        eval "${cmd}"
+    fi
+
+    if $(virsh list --all | grep ${vm_name} 2>&1 >/dev/null); then
+        echo "Found ${vm_name} in vm list"
+        local img_file=$(virsh dumpxml ${vm_name} | grep 'source file' | awk -F'=' '{print $2}' | awk -F"'" '{print $2}')
+        cmd="virsh undefine ${vm_name} && rm -rf ${img_file}"
+        echo "Command: $cmd"
+        eval "${cmd}"
+    fi
+}
+
+
+function ssh_command() {
+    local key_file=${1}
+    local username=${2}
+    local host_ip=${3}
+    local cmd_str="${4}"
+    #local cmd="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -ttt -i ${ssh_key_file} ${vm_username}@${host_ip} ${cmd_str}"
+    local cmd="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -ttt -i ${key_file} ${username}@${host_ip} ${cmd_str}"
+    echo "Command: $cmd"
+    eval "${cmd}"
+    return $?
+}
+
+function get_ip_from_mac() {
+    #set -x
+    # without avahi service running in vm
+    #vm_ip=$(sed -n "/bootpc.*Request from ${vm_mac}/,\$p" ${vm_tcpdump_log_file} | grep 'bootpc.*DHCP, Reply' | grep -v '255.255.255.255.bootpc' | sed 's#.*> \([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)\.bootpc.*#\1#g'| head -1)
+    #if [ -z "${vm_ip}" ]; then
+    #    # with avahi service running in vm
+    #    vm_ip=$(grep ${vm_mac} ${vm_tcpdump_log_file} | grep 'Cache flush' | awk -F' A ' '{print $2}' | awk -F',' '{print $1}' | head -1)
+    #fi
+    #set +x
+
+    mac=$1
+    bridge=$2
+    if [[ -z $mac ]]; then
+        echo "mac address is null."
+        return 1
+    fi
+
+    if ! $(rpm -q nmap 2>&1 >/dev/null); then
+        echo "need namp rpmball installed."
+        return 1
+    fi
+    local network=$(ip route | grep " $bridge " | grep 'src' | awk {'print $1'})
+    if [ -n "$network" ]; then
+        hostip=$(nmap -sP -n "$network" | grep -i -B 2 "$mac" | head -1 | sed -e 's/.* \([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\).*/\1/')
+        if [ -n "$hostip" ]; then
+            echo $hostip
+            return 0
+        else
+            echo "No ip address found"
+            return 1
+        fi
+    else
+        echo "Did not find network for your specified bridge"
+        return 1
+    fi
+}
+
+
+function node_verification() {
+    local broker_ip=$1
+    local node_name=$2
+    local node_ip=$3
+    local temp_output=$(mktemp)
+
+    echo "#############"
+    echo "Node verification for ${node_name}"
+    echo "#############"
+
+    ssh_command ${ssh_key_file} ${vm_username} ${broker_ip} "mco ping" 2>&1 | tee $temp_output
+    echo ""
+
+    if ! $(cat ${temp_output} | grep ${node_name} 2>&1 >/dev/null); then
+        echo "Did not found ${node_name} in mco ping ouptut, pls check!!!!"
+        return 1
+    fi
+
+    ssh_command ${ssh_key_file} ${vm_username} ${node_ip} "ping -c 3 ${broker_name}.${domain_name}"
+    return $?
+}
+
+
+function create_vm() {
+    local vm_img_path=${1}
+    local vm_name=${2}
+    local vm_tcpdump_log_file="${vm_name}_tcpdump.log"
+    local vm_mac
+
+    cmd="sed -e 's#PATH#${vm_img_path}#g' -e 's#NAME#${vm_name}#g' $vm_template_xml >${vm_name}.xml"
+    echo "Command: $cmd"
+    eval "${cmd}"
+    echo ""
+
+    cmd="virsh define ${vm_name}.xml"
+    echo "Command: $cmd"
+    eval "${cmd}"
+    echo ""
+
+    cmd="virsh start ${vm_name}"
+    echo "Command: $cmd"
+    eval "${cmd}"
+    echo ""
+
+    echo "Sleeping ${boot_timeout}s to wait vm boot up"
+    sleep ${boot_timeout}
+    echo ""
+
+    echo "Get vm ip from mac in tcpdump log file"
+    vm_mac=$(virsh dumpxml ${vm_name} | grep "mac address" | awk -F"'" '{print $2}')
+    # vm_ip will be saved in a gloabl var
+    #set -x
+    vm_ip=$(get_ip_from_mac ${vm_mac} "br0")
+    #set +x
+    if [ -z "${vm_ip}" ]; then
+        echo "Can not find IP"
+        return 1
+    fi
+    if $(ping -c 3 ${vm_ip} 2>&1 >/dev/null); then
+        echo "Get ${vm_name} ip: ${vm_ip}"
+    else
+        echo "Fail to ping ${vm_name}"
+        return 1
+    fi
+}
+
+function prepare_parent_img() {
+    local cmd
+    local parent_vm_ip
+    local temp_repo
+    local devops_packages_url=${1}
+    local overwrite_flag=${2}
+
+    if [ X"$overwrite_flag" == X"1" ]; then
+        clean_vm ${parent_vm_name}
+    fi
+
+    echo "#############"
+    echo "Prepare parent node image"
+    echo "#############"
+    echo "Download image file"
+    cmd="rm -rf $parent_vm_img && wget -nv $img_path -O $parent_vm_img"
+    echo "Command: $cmd"
+    eval "${cmd}"
+
+    create_vm ${parent_vm_img} ${parent_vm_name}
+    parent_vm_ip=${vm_ip}
+    
+    cmd="mkdir -p ${HOME}/.ssh && ${root_dir}/lib/auto_ssh.py -i ${parent_vm_ip} -u ${vm_username} -p ${vm_password} -f ${ssh_key_file}"
+    echo "Command: $cmd"
+    eval "${cmd}"
+    echo ""
+    
+    echo "Create devops repo in vm"
+    temp_repo=$(mktemp)
+    cat <<EOF >${temp_repo}
+[openshift_alpha_devops]
+# from our alpha brew tag
+name=OpenShift DevOps Alpha
+baseurl=${devops_packages_url}
+enabled=1
+gpgcheck=0
+EOF
+    
+    cmd="scp -i ${ssh_key_file} ${temp_repo} ${vm_username}@${parent_vm_ip}:${target_repo_file}"
+    echo "Command: $cmd"
+    eval "${cmd}"
+    echo ""
+    
+    echo "Install openshift packages"
+    ssh_command ${ssh_key_file} ${vm_username} ${parent_vm_ip} "yum install -y openshift-origin-node cartridge-* lsof"
+    echo ""
+    
+    echo "Delete eth0 udev config file"
+    ssh_command ${ssh_key_file} ${vm_username} ${parent_vm_ip} "rm -rf /etc/udev/rules.d/70-persistent-net.rules"
+    echo ""
+    
+    echo "Poweroff node"
+    ssh_command ${ssh_key_file} ${vm_username} ${parent_vm_ip} "poweroff"
+    echo ""
+    
+    echo "Sleeping ${boot_timeout}s to wait vm poweroff"
+    sleep ${boot_timeout}
+    echo ""
+
+    if $(virsh list | grep ${parent_vm_name} 2>&1 >/dev/null); then
+        echo "Looks like vm hang there, so destroy it"
+        cmd="virsh destroy ${parent_vm_name}"
+        echo "Command: $cmd"
+        eval "${cmd}"
+        echo ""
+    fi
+    
+    echo "Undefine node"
+    cmd="virsh undefine ${parent_vm_name}"
+    echo "Command: $cmd"
+    eval "${cmd}"
+    echo ""
+}
+
+function create_broker() {
+    local source_img=$1
+    local broker_name=$2
+    local broker_img="${vm_img_dir}/${broker_name}.qcow2"
+    local overwrite_flag=${3}
+
+    if [ X"$overwrite_flag" == X"1" ]; then
+        clean_vm ${broker_name}
+    fi
+
+    echo "#############"
+    echo "Create ${broker_name}"
+    echo "#############"
+
+    cmd="cp -f ${source_img} ${broker_img}"
+    echo "Command: $cmd"
+    eval "${cmd}"
+    echo ""
+   
+    # broker ip is saved into a global var
+    create_vm ${broker_img} ${broker_name}
+    broker_ip=${vm_ip}
+    
+    echo "Install openshift packages"
+    ssh_command ${ssh_key_file} ${vm_username} ${broker_ip} "yum install -y openshift-origin-broker"
+    echo ""
+    
+    ssh_command ${ssh_key_file} ${vm_username} ${broker_ip} "ss-setup-broker --domain ${domain_name}"
+    echo ""
+
+    node_verification ${broker_ip} ${broker_name} ${broker_ip}
+}
+
+

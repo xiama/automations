@@ -1,0 +1,29 @@
+<?php
+    /*** make it or break it ***/
+    error_reporting(E_ALL);
+
+    try
+    {
+        $sql = "CREATE TABLE animals (
+        animal_id INTEGER PRIMARY KEY,
+        animal_name TEXT NOT NULL,
+        animal_type TEXT UNIQUE NOT NULL,
+        last_updated TIMESTAMP NOT NULL
+        )";
+
+        /*** create the database file in db ***/
+        $dbh = new PDO("sqlite:db/animals.sqlite");
+
+        /*** set all errors to excptions ***/
+        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        /*** run the create table query ***/
+        $dbh->query($sql);
+
+        echo 'done';
+    }
+    catch(PDOException $e)
+    {
+        echo $e->getMessage();
+    }
+?> 

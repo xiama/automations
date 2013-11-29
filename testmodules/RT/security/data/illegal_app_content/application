@@ -1,0 +1,56 @@
+#
+import commands
+
+def test():
+    result = ""
+    result += run_cmd("ls -Z /proc")
+    result += run_cmd("tail /proc/*")
+    result += run_cmd("tail /selinux/*")
+    result += run_cmd("tail /etc/libra/*.conf")
+    result += run_cmd("tail /usr/bin/rhc-*")
+    result += run_cmd("ls -Z /var/lib/libra/")
+    result += run_cmd("tail /etc/shadow")
+    result += run_cmd("ps -efZ ; kill -9 1")
+    result += run_cmd("ping www.redhat.com")
+    result += run_cmd("df")
+    result += run_cmd("su")
+    result += run_cmd("`find ~ -name bind` localhost 2222 localhost 3333")
+    result += run_cmd("runcon -t bin_t -r object_r `find ~ -name bind`")
+#    result += run_cmd("nc -z localhost 1-65535")
+    return result
+
+def run_cmd(cmd):
+    (status,output) = commands.getstatusoutput(cmd)
+    return "-"*100+"\nCOMMAND:"+cmd+"\nRETURN VALUE:"+str(status)+"\nOUTPUT:\n"+output+"\n"+"-"*100+"\n"
+#    output=""
+#    for line in result.split('\n'):
+#        output += "<p>"+line+"</p>"
+#    return output
+
+def application(environ, start_response):
+
+    ctype = 'text/plain'
+    if environ['PATH_INFO'] == '/health':
+        response_body = "1"
+    elif environ['PATH_INFO'] == '/env':
+        response_body = ['%s: %s' % (key, value)
+                    for key, value in sorted(environ.items())]
+        response_body = '\n'.join(response_body)
+    else:
+        ctype = 'text/html'
+        response_body = test()
+
+    status = '200 OK'
+    response_headers = [('Content-Type', ctype), ('Content-Length', str(len(response_body)))]
+    #
+    start_response(status, response_headers)
+    return [response_body]
+
+#
+# Below for testing only
+#
+if __name__ == '__main__':
+    from wsgiref.simple_server import make_server
+    httpd = make_server('localhost', 8051, application)
+    # Wait for a single request, serve it and quit.
+    httpd.handle_request()

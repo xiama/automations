@@ -1,0 +1,87 @@
+#!/usr/bin/python
+import os
+
+virtenv = os.environ['APPDIR'] + '/virtenv/'
+os.environ['PYTHON_EGG_CACHE'] = os.path.join(virtenv, 'lib/python2.6/site-packages')
+virtualenv = os.path.join(virtenv, 'bin/activate_this.py')
+try:
+    execfile(virtualenv, dict(__file__=virtualenv))
+except IOError:
+    pass
+#
+# IMPORTANT: Put any additional includes below this line.  If placed above this
+# line, it's possible required libraries won't be in your searchable path
+# 
+import socket
+import select
+
+def application(environ, start_response):
+
+    ctype = 'text/plain'
+    if environ['PATH_INFO'] == '/health':
+        response_body = "1"
+    elif environ['PATH_INFO'] == '/scan':
+        hostlist=( 
+            "127.0.0.1", "imap.gmail.com", "smtp.gmail.com", 
+            "smtp.mail.yahoo.com", "pop.mail.yahoo.com"
+        )
+        portlist=(
+            "imap", "imap3", "imaps", "pop2", "pop3", "pop3s", 
+            "submission", "smtp", "smtps"
+        )
+
+        sockets=dict()
+        poller=select.epoll()
+        response_body=""
+        for host in hostlist:
+            for port in portlist:
+                try:
+                    hent = socket.getaddrinfo(host, port)[0][4]
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.setblocking(False)
+                    poller.register(sock.fileno())
+                    sockets[sock.fileno()]=[sock, host, port]
+                    sock.connect_ex(hent)
+                except Exception, e:
+                    response_body+="%s:%s exception: %s\n" % (host, port, str(e))
+
+        while sockets:
+            events = poller.poll(5)
+            if events:
+                for fileno, event in events:
+                    poller.unregister(fileno)
+                    e=sockets[fileno][0].getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
+                    if e == 0:
+                        response_body+="%s:%s   Connected\n" % (sockets[fileno][1],
+                                                                sockets[fileno][2])
+                    else:
+                        response_body+="%s:%s   Refused\n" % (sockets[fileno][1],
+                                                                  sockets[fileno][2])                            
+                    sockets[fileno][0].close()
+                    del(sockets[fileno])
+            else:
+                break
+                    
+        for sock in sockets:
+            sockets[sock][0].close()
+            response_body+="%s:%s Timed Out\n" % (sockets[sock][1], sockets[sock][2])
+
+        poller.close()
+
+    else:
+        response_body = 'OpenShift'
+
+    status = '200 OK'
+    response_headers = [('Content-Type', ctype), ('Content-Length', str(len(response_body)))]
+    #
+    start_response(status, response_headers)
+    return [response_body]
+
+#
+# Below for testing only
+#
+if __name__ == '__main__':
+    from wsgiref.simple_server import make_server
+    httpd = make_server('localhost', 8051, application)
+    # Wait for a single request, serve it and quit.
+    httpd.handle_request()

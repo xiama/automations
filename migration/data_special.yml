@@ -1,0 +1,56 @@
+jenkins1:
+  Cartridge:
+    - jenkins-1
+
+stopapp:
+  Cartridge:
+    - php-5.3
+  embed:
+  alias:
+    - stop.me
+  scale:
+  action: stop
+
+mediumapp:
+  Cartridge:
+    - ruby-1.9
+  embed:
+  scale:
+  size: medium
+
+sslapp:
+  Cartridge:
+    - perl-5.10
+  embed:
+  scale:
+  alias:
+    - pl.ssl.test
+  ssl: true
+
+sslapps:
+  Cartridge:
+    - nodejs-0.6
+  embed:
+  scale: true
+  min:
+  max:
+  alias:
+    - ns.ssl.test
+  ssl: true
+
+download:
+  Cartridge:
+    - https://raw.github.com/jhou1/downloadable-php/master/metadata/manifest.yml
+    - https://raw.github.com/jhou1/downloadable-mysql/master/metadata/manifest.yml
+  embed:
+  scale:
+
+storageapp:
+  Cartridge:
+    - jbosseap-6
+  embed:
+    - mysql-5.1
+  scale: true
+  min: 2
+  max: -1
+  storage: 3

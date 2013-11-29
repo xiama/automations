@@ -1,0 +1,6 @@
+source 'http://rubygems.org'
+
+gem 'sinatra'
+gem 'mongo', '1.6.4'
+gem 'bson', '1.6.4'
+gem 'bson_ext', '1.6.4'

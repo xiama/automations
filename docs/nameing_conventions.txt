@@ -1,0 +1,28 @@
+Naming convention for class and test script file name
+=====================================================
+
+I would like to request the following naming convention for classes and filename
+regarding the new framework, rhtest.
+
+1. filename of the testcase and the add_test(class_name) should match. 
+
+2. use CamelCase for class names.  I would like to add the expectation that only 
+   uppercase the first letter after the underscore (to make parsing easier) even 
+   for names
+   ex. 
+3. use underscores as spaces in filenames or use the main test class name as the 
+   filename.
+    ex: for rhc_domain.py  the main class name should be RhcDomain, or you can 
+    rename the file name to RhcDomain.py to match what is represented in the code. 
+
+For example:
+
+file_name                                       class_name
+============================================================
+qpid_binding.py                             QpidBinding
+public_tcp_proxy.py                         PublicTcpProxy
+embed_jenkins2scalable_app.py               EmbedJenkins2scalableApp
+
+  The reason for this naming convention is to ensure that the framework can 
+  dynamically add tests based on tags.  But please do keep these rules in mind when 
+  adding new tests.

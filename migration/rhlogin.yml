@@ -1,0 +1,39 @@
+openshift+migration1@redhat.com:
+  env:
+    - amazonaws.com
+    - int.openshift.redhat.com
+    - stg.openshift.redhat.com
+  password: redhat
+  domain: migration1
+  capacities: --addgearsize medium --setmaxgears 50
+  data: ~/workspace/OpenShift-Migration/migration/data_non_scaling.yml
+
+openshift+migration2@redhat.com:
+  env:
+    - amazonaws.com
+    - int.openshift.redhat.com
+    - stg.openshift.redhat.com
+  password: redhat
+  domain: migration2
+  capacities: --addgearsize medium --setmaxgears 50
+  data: ~/workspace/OpenShift-Migration/migration/data_scaling.yml
+
+openshift+migration3@redhat.com:
+  env:
+    - amazonaws.com
+  password: redhat
+  domain: migration3
+  plan: silver
+  data: ~/workspace/OpenShift-Migration/migration/data_special.yml
+
+
+openshift+migrationc9@redhat.com:
+  env:
+    - amazonaws.com
+  password: redhat
+  domain: migrationc9
+  capacities: --addgearsize c9 --allowsubaccount true --inheritgearsize true --setmaxgears 10
+  data: ~/workspace/OpenShift-Migration/migration/data_c9.yml
+  c9: true
+  sub_account: c9sub
+  sub_domain: subd

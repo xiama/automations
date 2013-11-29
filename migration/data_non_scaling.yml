@@ -1,0 +1,125 @@
+jenkins1:
+  Cartridge:
+    - jenkins-1
+
+php1:
+  Cartridge:
+   - php-5.3
+   - mysql-5.1
+   - jenkins-client-1
+  embed:
+  multiple: 2
+
+dancer:
+  Cartridge:
+    - perl-5.10
+  embed:
+    - postgresql-8.4
+  from-code: git://github.com/openshift/dancer-example.git
+  alias:
+    - dancer.example.com
+
+diy1:
+  Cartridge:
+    - diy-0.1
+  embed:
+    - jenkins-client-1
+
+pacman:
+  Cartridge:
+    - nodejs-0.6
+    - mongodb-2.2
+  embed:
+    - rockmongo-1.1
+  from-code: git://github.com/ramr/pacman.git
+
+spring:
+  Cartridge:
+    - jbosseap-6
+  embed:
+    - jenkins-client-1
+  from-code: git://github.com/openshift/spring-eap6-quickstart.git
+
+jbossas1:
+  Cartridge:
+    - jbossas-7
+  embed:
+    - jenkins-client-1
+    - cron-1.4
+
+rails:
+  Cartridge:
+    - ruby-1.9
+    - mysql-5.1
+    - phpmyadmin-4
+  embed:
+    - jenkins-client-1
+  from-code: git://github.com/openshift/rails-example.git
+
+ruby18:
+  Cartridge:
+    - ruby-1.8
+    - postgresql-9.2
+  alias:
+    - r18.r18.r18
+
+django:
+  Cartridge:
+    - python-2.6
+  embed:
+    - metrics-0.1
+  alias:
+    - django.hjw.org
+  from-code: git://github.com/openshift/django-example.git
+
+python33:
+  Cartridge:
+    - python-3.3
+  embed:
+    - cron-1.4
+  alias:
+    - python33.foo.org
+
+jbossews1:
+  Cartridge:
+    - jbossews-1.0
+    - mongodb-2.2
+    - rockmongo-1.1
+  embed:
+    - jenkins-client-1
+
+jbossews2:
+  Cartridge:
+    - jbossews-2.0
+    - mongodb-2.2
+    - mysql-5.1
+    - phpmyadmin-4
+
+python27:
+  Cartridge:
+   - python-2.7
+   - postgresql-8.4
+
+
+zend56:
+  Cartridge:
+    - zend-5.6
+    - cron-1.4
+    - postgresql-9.2
+    - jenkins-client-1
+  alias:
+    - zend.test.cn
+
+switchyardapp:
+  Cartridge:
+    - jbosseap-6
+    - switchyard-0
+  alias:
+    - switchyard.test
+
+nodejs10:
+  Cartridge:
+    - nodejs-0.10
+    - postgresql-9.2
+  alias:
+    - n.n.n

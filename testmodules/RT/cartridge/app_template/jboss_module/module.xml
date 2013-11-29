@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module xmlns="urn:jboss:module:1.0" name="org.jboss.test.modules">
+
+  <main-class name="org.jboss.test.modules.Main"/>
+
+  <resources>
+    <resource-root path="TestClass.jar"/>
+        <!-- Insert resources here -->
+    </resources>
+
+    <!--dependencies>
+      <module name="org.jboss.logging"/>
+    </dependencies-->
+</module>

@@ -1,0 +1,9 @@
+#
+# Identifying the process of runserver
+#
+PIDS=$(ps -ef | grep -E 'python manage\.py runserver' | awk '{ print $2 }')
+
+#
+# Killing those processes
+#
+( if [[ ! -z "$PIDS" ]]; then echo "$PIDS" | xargs kill -9 ; fi ) 2>&1 >/dev/null

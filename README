@@ -1,0 +1,95 @@
+========
+README
+========
+
+directory structure
+===================
+rhtest
+\+
+ |--bin
+ |--etc
+ |--lib
+ \--testmodules
+
+ bin: 
+ 	any executeable programs are stored here
+ etc: 
+ 	configuration JSON object
+ lib: 
+ 	supporting library files are stored here
+ testmodules: 
+ 	actual test scripts are stored here.  There are current 3 sub directories 
+ 	RI (RunTime), UI (UserInterface) and BI (Business Intel) into which 
+ 	different tests can be stored.  Subdirectories can be added into these
+ 	3 categories if we decided to further separate the functionalities under 
+ 	each category.
+
+
+1. Provide a common interface to write automated tests (can leverage the
+existing testcase, just need to wrap it around the new template, please refer
+to boilerplate.py for an example)
+
+2. User can use an existing instance (by using specifying the IP via an
+environment variable) or ask the framework to get start and instance for him
+by either picking the latest blessed AMI or user specified label.
+
+3. Communicating to the run instance is via the new REST API and via
+paramiko's ssh library..  I believe this is the way to go because parsing 
+command line output differs with different operations, while REST will always
+have a consistent return format.
+
+4. User can run the tests in different modes:
+   a. debug:
+    - This mode is intended for user to use when developing the test script.
+      In this mode, the log file is only stored locally.  Also, TCMS run
+      instances are created only is a user specify it from the command line
+
+   b. stg/prod
+    - This mode is used when a user want the test run(s) to be official (i.e.
+      storing the results into the common database as well as pushing the
+      local run log up to the DB server).  
+
+5. Each run is stored into a central mysql database and it's results and logs
+are pushed to a common location.
+    
+    - Currently, it stores the following information (TBD): 
+        1. testcase name
+        2. who ran the test
+        3. AMI that the run is based on
+        4. the alias (devenv_xxx) that the run is based on
+        5. any notes that the user specified from the command line
+        6. start and end time.
+        7. if a TCMS run is associated with the run, the TCMS run link is also
+        stored.
+    - The test can also store anything that's test specific into the database.
+
+6. Each individual test can have its own .conf file that can contain any test
+specific (i.e. initial values, expected values, and etc.)
+
+
+7. A reporting portal to display the run results so everybody can
+see/query the results of runs (TBD, but shouldn't be too time consuming).
+
+
+Example of how to call your test(s):
+====================================
+/* 
+ * run the test perf.py under the testmoudules/perf/perf.py, do not store to 
+ * #TCMS (defualt) and store into the mysql DB  
+ */
+
+>>> rhtest RT.perf.perf
+
+/*
+ * same as above but register the result into TCMS
+ */
+>>> rhtest -T RT.perf.perf
+
+/*
+ * same as above but do not store into the local database (log files will not be
+ * pushed to the logging machine.  Local html file is still generated.
+ */
+>>> rhtest -TR RT.perf.perf
+
+
+refactor rhc

@@ -1,0 +1,14 @@
+#
+# Using the specific Django version
+#
+export PYTHONPATH="${OPENSHIFT_REPO_DIR}/diy"
+
+#
+# Change the current dir the app dir
+#
+cd "${OPENSHIFT_REPO_DIR}/diy/mydiyapp"
+
+#
+# Run Django server
+#
+( python manage.py runserver $OPENSHIFT_DIY_IP:$OPENSHIFT_DIY_PORT ) >"$OPENSHIFT_DIY_LOG_DIR/django.log" 2>&1 &
